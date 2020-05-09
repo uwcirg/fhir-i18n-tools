@@ -97,7 +97,9 @@ if __name__ == '__main__':
                         type=str)
     parser.add_argument("translations",
                         help='Path(s) to the translations (JSON file(s)), keyed by base '
-                             'language strings (en)',
+                             'language strings (en). The script will use the first two '
+                             'characters of the file name as language code, so the files'
+                             'should be named accordingly, e.g. `mn_fhir.json`',
                         type=str,
                         nargs='+', )
     args = parser.parse_args()
