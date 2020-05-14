@@ -5,7 +5,7 @@ import sys
 
 translatable_ext_name = 'http://hl7.org/fhir/StructureDefinition/elementdefinition-' \
                         'translatable'
-
+translation_ext_name = 'http://hl7.org/fhir/StructureDefinition/translation'
 
 def main(bundle_path, translation_paths):
     with open(bundle_path) as file:
@@ -34,9 +34,20 @@ def is_translatable(b, key):
     return False
 
 
+def remove_translation(b, key, language_code):
+    props_key = "_" + key
+    if props_key in b and 'extension' in b[props_key]:
+        for ext in b[props_key]['extension']:
+            if ext['url'] == translation_ext_name:
+                for sub_ext in ext['extension']:
+                    if sub_ext['url'] == "lang" and sub_ext["valueCode"] == language_code:
+                        b[props_key]['extension'].remove(ext)
+                        return
+
+
 def translation_ext(language_code, translation):
     return {
-        "url": "http://hl7.org/fhir/StructureDefinition/translation",
+        "url": translation_ext_name,
         "extension": [
             {
                 "url": "lang",
@@ -56,8 +67,13 @@ def insert_translation(b, key, language_code, t):
         print(f"The following string is missing the translation to {language_code}:\n"
               f"{original}\n", file=sys.stderr)
         return
+
+    # remove existing translation, if any
+    remove_translation(b, key, language_code)
+
     translation = t[language_code][original]
     props_key = "_" + key
+
     b[props_key]['extension'].append(translation_ext(language_code, translation))
 
 
@@ -97,9 +113,7 @@ if __name__ == '__main__':
                         type=str)
     parser.add_argument("translations",
                         help='Path(s) to the translations (JSON file(s)), keyed by base '
-                             'language strings (en). The script will use the first two '
-                             'characters of the file name as language code, so the files'
-                             'should be named accordingly, e.g. `mn_fhir.json`',
+                             'language strings (en)',
                         type=str,
                         nargs='+', )
     args = parser.parse_args()
