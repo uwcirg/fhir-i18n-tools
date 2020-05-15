@@ -39,15 +39,17 @@ def format_arb(strings):
 
 
 if __name__ == '__main__':
+    # output file is first arg
+    arb_filename = sys.argv[1]
 
-    for filename in sys.argv[1:]:
+    strings = []
+    for filename in sys.argv[2:]:
         print('processing: ', filename)
         with open(filename, 'r') as xml_file:
             xml_string = xml_file.read()
-        strings = parse_fhir_xml(xml_string)
-        arb_content = format_arb(strings)
+        strings.extend(parse_fhir_xml(xml_string))
 
-        arb_filename = os.path.splitext(filename)[0] + '.arb'
-        with open(arb_filename , 'w') as arb_file:
-            arb_file.write(arb_content)
-        print('created: ', arb_filename)
+    arb_content = format_arb(strings)
+    with open(arb_filename , 'w') as arb_file:
+        arb_file.write(arb_content)
+    print('created: ', arb_filename)
